@@ -3,6 +3,8 @@
  * 
  * <Please put your name and userid here>
  * 
+ * name: tangyiheng
+ * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
  *
@@ -143,7 +145,12 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return 2;
+  /*
+  * 找到x和y中非同1的位
+  * 找到x和y中非同0的位
+  * 二者进行与运算得到既非同1也非同0的位
+  */
+ return ~(x & y) & ~(~x & ~y);
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -152,8 +159,11 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int tmin(void) {
-
-  return 2;
+  /*
+  * 最小的二进制int整数为 1000 0000 0000 0000 0000 0000 0000 0000
+  * -1 * 2^31
+  */
+  return 1 << 31;
 
 }
 //2
@@ -165,7 +175,13 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  return 2;
+  /*
+  * 利用Tmax = ~(Tmax+1)的性质
+  * 除外，0xffffffff也满足，需排除
+  * 通过将其转化为0x0
+  */
+  return !(x ^ (~(x + 1))) & !(!(~x));
+  
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -176,7 +192,12 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+  /*
+  * 将所有奇数位置的1右移转化为偶数位置的1
+  * 二者或得到1, 需要排除偶数位的干扰
+  */
+  x = x & 0xaaaaaaaa;
+  return !(~(x | (x >> 1)));
 }
 /* 
  * negate - return -x 
@@ -186,7 +207,7 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return ~x + 1;
 }
 //3
 /* 
@@ -199,7 +220,14 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  //bit ops can determine range
+  //0x30 <= x <= 0x39
+  //(x-0x30>=0) && (0x39-x>=0)
+  int tmin, lower, upper;
+  tmin = 1 << 31;
+  lower = !((x + ~0x30 + 1) & tmin); 
+  upper = !((0x39 + ~x + 1) & tmin);
+  return lower & upper;
 }
 /* 
  * conditional - same as x ? y : z 
@@ -209,7 +237,10 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  //x != 0 => x = -1 => get y
+  //x == 0 => x = 0 => get z
+  x = ~(!(!x)) + 1; 
+  return (x & y) | (~x & z);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -219,7 +250,16 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  //x<=y =>y+(-x)>=0 
+  //notice overflow
+
+  int mask, sign, diffSign, sameSign;
+  mask = 1 << 31; //0x80000000
+  sign = (x & mask) ^ (y & mask);
+  diffSign = !(!(sign & (x & mask)));//diff sign and x is neg
+  sameSign = (!sign) & (!((y + ~x + 1) & mask)); //same sign and y-x>=0
+  return diffSign | sameSign;
+
 }
 //4
 /* 
@@ -230,8 +270,11 @@ int isLessOrEqual(int x, int y) {
  *   Max ops: 12
  *   Rating: 4 
  */
-int logicalNeg(int x) {
-  return 2;
+int logicalNeg(int x) { 
+  // | and >> make x be -1 if x != 0
+  // make x be 0 if x == 0
+  //x!=0 => 0, x==0 => 1
+  return ((x | (~x + 1)) >> 31) + 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -246,7 +289,23 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+  //首先将负数进行~x，翻折到与之对应的正数，方便我们统一对正数进行处理
+  int sign, mask, n;
+  sign = (x >> 31) & 1; //若x为非负 sign=0, 若x为负， sign=1 
+  mask = ~(!(!sign)) + 1;
+  x = (mask & (~x)) | (~mask & x);  //x= (x<0)? ~x : x
+  //or x = x ^ (x << 1)
+
+  //找这个正数最高位的1
+  x = x | (x << 1);
+  n = 0;
+  //二分搜索 总是尝试在有1的区间左半边搜索
+  n += ((!!(x & ((~0) << (n + 16)))) << 4); //搜索高16位是否有1
+  n += ((!!(x & ((~0) << (n + 8)))) << 3);  //搜索高8位是否有1
+  n += ((!!(x & ((~0) << (n + 4)))) << 2);  //搜索高4位是否有1
+  n += ((!!(x & ((~0) << (n + 2)))) << 1);  //搜索高2位是否有1
+  n += (!!(x & ((~0) << (n + 1))));  //搜索高1位是否有1
+  return n + 1;
 }
 //float
 /* 
@@ -261,7 +320,24 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  int frac, exp, sign, carry;
+  frac = uf & 0x007fffff; //尾数 23
+  uf >>= 23;
+  exp = uf & 0xff;  //指数 8
+  uf >>= 8;
+  sign = uf;
+  //float * 2
+  if (exp == 0x0) { //非规格化
+    frac <<= 1; 
+    carry = frac >> 23;
+    if (carry) { //产生进位
+      frac &= 0x007fffff;
+      exp++; //指数+1
+    }
+  } else if (exp != 0xff) { //规范化
+    exp++; //指数+1
+  }
+  return (sign << 31) + (exp << 23) + frac; 
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -276,7 +352,40 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  int frac, exp, sign, bias;
+  frac = uf & 0x007fffff; //尾数 
+  uf >>= 23;
+  exp = uf & 0xff;  //指数 
+  uf >>= 8;
+  sign = uf; //符号位
+    
+  //float to int 向零舍入
+  if (exp == 0xff) { //NaN or INF
+    return 0x80000000u;
+  } else if (exp == 0x0) { //非规格化(聚集在0的附近)
+    return 0; 
+  } else { //规格化
+    frac += (1 << 23); //M = 1 + f 获得完整的尾数
+    //根据指数部分是否大于 23 来判断小数点位置。
+    //如果大于，说明尾数23位全部为小数部分，需要左移；如果小于则需要右移
+    bias = exp - 0x7f - 23;  
+    if (bias > 0) {
+      while (bias) {
+        frac <<= 1;
+        bias--;
+        if (frac < 0) {
+          return 0x80000000u; //溢出
+        }
+      }
+    } else if (bias < 0) {
+      bias = ~bias + 1;
+      if (bias >= 32) {
+        bias = 31;
+      }
+      frac >>= bias;
+    }
+    return (sign)? ~frac + 1 : frac;
+  }
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -292,5 +401,12 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+    int exp = x + 0x7f;  //1~254
+    if (exp <= 0) {
+      return 0; 
+    } else if (exp >= 0xff) {
+      return 0xff << 23; //INF
+    } else {
+      return exp << 23;
+    }
 }
