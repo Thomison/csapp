@@ -1,0 +1,5 @@
+-> int(hex): 0x59b997fa
+
+-> string(hex): 59b997fa
+
+-> ascii(hex):35 39 62 39 39 37 66 61
